@@ -1,0 +1,41 @@
+@startuml C4-alternative
+title C4. Сервис инцидентов — сервер фермы
+skinparam classAttributeIconSize 0
+hide empty members
+class ObservationController {
+ +receive(observation): void
+}
+class IncidentService {
+ +process(observation): void
+ +acknowledge(id): void
+}
+class Incident {
+ +id: UUID
+ +type: String
+ +zoneId: String
+ +status: String
+}
+class IncidentRepository <<PostgreSQL>> {
+ +save(incident): void
+ +findPending(): List<Incident>
+ +markSent(id): void
+}
+class LocalNotifier {
+ +notify(incident): void
+}
+class EventPublisher {
+ +sendPending(): void
+}
+ObservationController --> IncidentService
+IncidentService --> Incident : создаёт
+IncidentService --> IncidentRepository : сохраняет
+IncidentService --> LocalNotifier : оповещает
+EventPublisher --> IncidentRepository : получает события
+note bottom of EventPublisher
+ Передаёт события через MQTT.
+ Повторяет отправку при сбое связи.
+end note
+note bottom of LocalNotifier
+ Работает без интернета, но зависит от сервера фермы.
+end note
+@enduml

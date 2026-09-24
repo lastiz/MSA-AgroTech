@@ -1,0 +1,24 @@
+@startuml C1-alternative
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/v2.12.0/C4_Context.puml
+ title C1. B — обработка на сервере фермы
+Person(operator, "Оператор / ветеринар", "Работа на ферме")
+Person(manager, "Управляющий", "Контроль нескольких ферм")
+System_Ext(cameras, "Камеры", "Разные производители")
+System_Ext(equipment, "Оборудование", "Кормушки, поилки, датчики и фильтры")
+System_Ext(alarm, "Местная сигнализация", "Световое или звуковое оповщение")
+System_Ext(corporate, "Системы АгроТех Х", "Существующие ERP, шина данных и BI")
+Enterprise_Boundary(platform, "Новая платформа мониторинга") {
+ System(edge, "Edge-шлюзы", "Подключение оборудования, безопасные расписания")
+ System(farm, "Агент фермы", "Видеоаналитика, оповещение, управление и учёт")
+ System(center, "Центральная система", "Сводный мониторинг, настройки, роли и API")
+}
+Rel(cameras, farm, "Передаёт видео")
+BiRel(edge, equipment, "Команды и телеметрия")
+Rel(farm, alarm, "Оповещает об опасности")
+Rel(alarm, operator, "Оповещение")
+Rel(operator, farm, "Местный интерфейс")
+BiRel(edge, farm, "События и настройки")
+BiRel(farm, center, "Синхронизация данных и конфигураций")
+Rel(manager, center, "Использует через веб-/мобильный клиент")
+BiRel(center, corporate, "Складские данные, события и метрики")
+@enduml
