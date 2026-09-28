@@ -1,0 +1,26 @@
+@startuml C3-alternative
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/v2.12.0/C4_Component.puml
+ title C3. Сервис инцидентов — сервер фермы
+Container_Ext(video, "Видеоаналитика", "gRPC", "Результаты модели")
+Container_Ext(ui, "Местный UI/API", "REST", "Рабочее место оператора")
+Container_Ext(broker, "Локальный брокер", "MQTT", "Передача в учёт и синхронизацию")
+ContainerDb_Ext(db, "БД инцидентов", "PostgreSQL", "События и очередь отправки")
+System_Ext(alarm, "Местная сигнализация", "Свет и звук")
+Container_Boundary(service, "Сервис инцидентов") {
+ Component(input, "Приём наблюдений", "ObservationController", "Получает результаты видеоаналитики")
+ Component(processor, "Обработка инцидентов", "IncidentService", "Проверяет правила и создаёт инцидент")
+ Component(repository, "Хранение", "IncidentRepository", "Сохраняет события и статус отправки")
+ Component(notifier, "Оповещение", "LocalNotifier", "Включает местную сигнализацию")
+ Component(sender, "Отправка событий", "EventPublisher", "Передаёт сохранённые события при наличии связи")
+}
+Rel(video, input, "Наблюдения", "gRPC")
+Rel(input, processor, "Передаёт результаты")
+Rel(processor, repository, "Сохраняет инцидент")
+Rel(processor, notifier, "Оповещает, не ожидая отправки")
+Rel(notifier, alarm, "Включает сигнал")
+Rel(repository, db, "Читает и сохраняет", "SQL")
+Rel(sender, repository, "Получает неотправленные события")
+Rel(sender, broker, "Публикует события и оценки поголовья", "MQTT")
+Rel(input, repository, "Сохраняет оценки поголовья для передачи")
+Rel(ui, processor, "Просмотр и подтверждение; проверка роли", "REST")
+@enduml
